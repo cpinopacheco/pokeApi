@@ -232,10 +232,6 @@ body {
 }
 
 .pokeindex-left__buttons .buttons .buttons-circle:hover {
-  background-color: var(--bg-lightblue);
-}
-
-.is-on {
   background-color: var(--bg-lightblue) !important;
 }
 
@@ -359,11 +355,11 @@ body {
   border-radius: 10px;
   box-shadow: inset 0px 0px 7px 8px var(--bg-shadow);
   color: var(--bg-lightblue);
-  transition: all 0.4s ease-in;
-  -webkit-transition: all 0.4s ease-in;
-  -moz-transition: all 0.4s ease-in;
-  -ms-transition: all 0.4s ease-in;
-  -o-transition: all 0.4s ease-in;
+  transition: all 0.5s ease-in;
+  -webkit-transition: all 0.5s ease-in;
+  -moz-transition: all 0.5s ease-in;
+  -ms-transition: all 0.5s ease-in;
+  -o-transition: all 0.5s ease-in;
 }
 
 .screen img {
@@ -521,11 +517,11 @@ audio {
   border-radius: 10px;
   position: relative;
   box-shadow: inset 0px 0px 7px 8px var(--bg-shadow);
-  transition: all 0.4s ease-in;
-  -webkit-transition: all 0.4s ease-in;
-  -moz-transition: all 0.4s ease-in;
-  -ms-transition: all 0.4s ease-in;
-  -o-transition: all 0.4s ease-in;
+  transition: all 0.5s ease-in;
+  -webkit-transition: all 0.5s ease-in;
+  -moz-transition: all 0.5s ease-in;
+  -ms-transition: all 0.5s ease-in;
+  -o-transition: all 0.5s ease-in;
 }
 
 .pokeindex-right__screen p {

@@ -1,6 +1,4 @@
 /* 
-  todo: apagar y encender pantallas con funciones.
-  todo: agregar efecto de sonido encendido al encender la pokedex
   todo: agregar efecto de brillo a las pantallas al encender la pokedex
   todo: agregar mensaje de bienvenida speech synthesis.
 */
@@ -16,11 +14,22 @@ const d = document,
   $lightSpeakSmall = d.querySelector(".status-light"),
   $btnPlay = d.querySelector(".btn-play"),
   $btnPause = d.querySelector(".btn-pause"),
-  $btnOn = d.querySelector(".buttons-circle");
+  $btnOn = d.querySelector(".buttons-circle"),
+  $soundBtnOn = d.createElement("audio");
 
 let voices = [];
 
-const speakPokedex = (
+const onLightSpeak = () => {
+  $lightSpeak.classList.add("is-speak");
+  $lightSpeakSmall.classList.add("is-speak");
+};
+
+const offLightSpeak = () => {
+  $lightSpeak.classList.remove("is-speak");
+  $lightSpeakSmall.classList.remove("is-speak");
+};
+
+const pokedexSpeak = (
   name,
   type,
   species,
@@ -34,10 +43,8 @@ const speakPokedex = (
     Su ataque más poderoso es: ${mainAttack}. ${detail} ${detail2} ${detail3}
   `;
   utterThis.text = phrase;
-  utterThis.voice = voices[65];
-  utterThis.rate = 1.3;
-  console.log(synth);
-  console.log(utterThis);
+  utterThis.voice = voices[59];
+  utterThis.rate = 1.4;
 
   if (synth.speaking) {
     synth.cancel();
@@ -47,13 +54,11 @@ const speakPokedex = (
   synth.speak(utterThis);
 
   utterThis.onstart = () => {
-    $lightSpeak.classList.add("is-speak");
-    $lightSpeakSmall.classList.add("is-speak");
+    onLightSpeak();
   };
 
   utterThis.onend = () => {
-    $lightSpeak.classList.remove("is-speak");
-    $lightSpeakSmall.classList.remove("is-speak");
+    offLightSpeak();
   };
 };
 
@@ -69,29 +74,34 @@ async function getDataPokemon() {
 
     if (!res) throw { status: res.status, statusText: res.statusText };
 
-    $mainScreen.innerHTML = `
-      <img src="${pokemon.sprites.front_default}" alt="${pokemon.name}">
-    `;
-
-    $nameScreen.innerHTML = `
-      <p>${pokemon.name.toUpperCase()}</p>
-    `;
-
     try {
       let res = await fetch(pokemon.types[0].type.url);
       pokemonType = await res.json();
 
       if (!res) throw { status: res.status, statusText: res.statusText };
+    } catch (error) {
+      let message = error.statusText || "Ha ocurrido un error";
+      $secondScreen.innerHTML =
+        "<p>Algunos pokémones son tan dificil de encontrar, que no se tiene infomación acerca de ellos...con suerte podemos encontrar alguna imagén que los represente.</p>";
+    }
+
+    try {
+      let res = await fetch(pokemon.species.url),
+        pokemonSpecies = await res.json();
+
+      if (!res) throw { status: res.status, statusText: res.statusText };
+
+      $mainScreen.innerHTML = `
+        <img src="${pokemon.sprites.front_default}" alt="${pokemon.name}">
+      `;
+
+      $nameScreen.innerHTML = `
+        <p>${pokemon.name.toUpperCase()}</p>
+      `;
 
       $secondScreen.innerHTML = `
         <p>Tipo: ${pokemonType.names[4].name}</p>
         <br>
-      `;
-    } catch (error) {
-      console.log(error);
-    }
-
-    $secondScreen.innerHTML += `
         <p>Ataques:</p>
         <br>
         <ul>
@@ -101,15 +111,6 @@ async function getDataPokemon() {
           <br>
           <li>${pokemon.moves[2].move.name}</li> 
         </ul>
-      `;
-
-    try {
-      let res = await fetch(pokemon.species.url),
-        pokemonSpecies = await res.json();
-
-      if (!res) throw { status: res.status, statusText: res.statusText };
-
-      $secondScreen.innerHTML += `
         <br><br><br>
         <p>Especie: ${pokemonSpecies.genera[5].genus}</p>
       `;
@@ -120,7 +121,7 @@ async function getDataPokemon() {
         (detail) => detail.language.name === "es"
       );
 
-      speakPokedex(
+      pokedexSpeak(
         pokemon.name,
         pokemonType.names[4].name,
         pokemonSpecies.genera[5].genus,
@@ -130,7 +131,8 @@ async function getDataPokemon() {
         detailsPokemon[2].flavor_text.replace(/\n/g, " ")
       );
     } catch (error) {
-      console.log(error);
+      $secondScreen.innerHTML =
+        "<p>Algunos pokémones son tan dificil de encontrar, que no se tiene infomación acerca de ellos...con suerte podemos encontrar alguna imagén que los represente.</p>";
     }
   } catch (error) {
     let message = error.statusText || "Ha ocurrido un error";
@@ -145,20 +147,24 @@ const onPokedex = () => {
   $btnOn.style.background = "#8cc6ff";
   $mainScreen.style.background = "#474445";
   $secondScreen.style.background = "#474445";
+  $search.removeAttribute("disabled");
+  $search.setAttribute("placeholder", "Ingrese número o nombre");
 };
 
 const offPokedex = () => {
+  synth.cancel();
   $btnOn.classList.add("is-off");
   $btnOn.style.background = "#474445";
   $mainScreen.style.background = "#000000";
   $secondScreen.style.background = "#000000";
-  synth.cancel();
   $mainScreen.innerHTML = "";
   $secondScreen.innerHTML = "";
   $nameScreen.innerHTML = "";
   $search.value = "";
   $lightSpeak.classList.remove("is-speak");
   $lightSpeakSmall.classList.remove("is-speak");
+  $search.setAttribute("disabled", true);
+  $search.setAttribute("placeholder", "");
 };
 
 /* Delegación de Eventos */
@@ -178,14 +184,12 @@ d.addEventListener("click", (e) => {
 
     if (e.target.matches(".btn-play") || e.target.matches(".btn-play img")) {
       synth.resume();
-      $lightSpeak.classList.add("is-speak");
-      $lightSpeakSmall.classList.add("is-speak");
+      onLightSpeak();
     }
 
     if (e.target.matches(".btn-pause") || e.target.matches(".btn-pause img")) {
       synth.pause();
-      $lightSpeak.classList.remove("is-speak");
-      $lightSpeakSmall.classList.remove("is-speak");
+      offLightSpeak();
     }
   }
 
@@ -194,14 +198,20 @@ d.addEventListener("click", (e) => {
     e.target.matches(".buttons-circle img")
   ) {
     $btnOn.classList.contains("is-off") ? onPokedex() : offPokedex();
+    $soundBtnOn.src = "assets/sound_on_pokedex.mp3";
+    $soundBtnOn.play();
   }
 });
 
 d.addEventListener("keyup", (e) => {
   if (e.key === "Enter") {
-    $search.value !== ""
-      ? getDataPokemon()
-      : alert("Debe ingresar el numero o nombre del pokémon que desea buscar");
+    if (!$btnOn.classList.contains("is-off")) {
+      $search.value !== ""
+        ? getDataPokemon()
+        : alert(
+            "Debe ingresar el numero o nombre del pokémon que desea buscar"
+          );
+    }
   }
 });
 
@@ -211,4 +221,6 @@ d.addEventListener("DOMContentLoaded", (e) => {
   });
   synth.cancel();
   $btnOn.classList.add("is-off");
+  $search.setAttribute("disabled", true);
+  $search.setAttribute("placeholder", "");
 });
