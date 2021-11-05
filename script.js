@@ -1,21 +1,17 @@
-/* 
-  todo: agregar efecto de brillo a las pantallas al encender la pokedex
-  todo: agregar mensaje de bienvenida speech synthesis.
-*/
-
 const d = document,
   synth = window.speechSynthesis,
   utterThis = new SpeechSynthesisUtterance(),
   $mainScreen = d.querySelector(".screen"),
   $secondScreen = d.querySelector(".pokeindex-right__screen"),
   $nameScreen = d.querySelector(".controller-touch"),
-  $search = d.querySelector(".input-poke"),
+  $searchInput = d.querySelector(".input-poke"),
   $lightSpeak = d.querySelector(".circle-big"),
   $lightSpeakSmall = d.querySelector(".status-light"),
-  $btnPlay = d.querySelector(".btn-play"),
-  $btnPause = d.querySelector(".btn-pause"),
-  $btnOn = d.querySelector(".buttons-circle"),
-  $soundBtnOn = d.createElement("audio");
+  $powerBtn = d.querySelector(".buttons-circle"),
+  $soundPowerBtn = d.createElement("audio"),
+  $textPlaying = d.querySelector(".text-playing"),
+  $btnStartSearch = d.querySelector(".btn-buscar"),
+  $btnStopSearch = d.querySelector(".btn-stop");
 
 let voices = [];
 
@@ -44,7 +40,7 @@ const pokedexSpeak = (
   `;
   utterThis.text = phrase;
   utterThis.voice = voices[59];
-  utterThis.rate = 1.4;
+  utterThis.rate = 1.3;
 
   if (synth.speaking) {
     synth.cancel();
@@ -59,11 +55,14 @@ const pokedexSpeak = (
 
   utterThis.onend = () => {
     offLightSpeak();
+    $btnStartSearch.classList.remove("disabled");
+    $btnStopSearch.classList.remove("disabled");
+    $searchInput.removeAttribute("disabled");
   };
 };
 
 async function getDataPokemon() {
-  let pokeApi = `http://pokeapi.co/api/v2/pokemon/${$search.value}`;
+  let pokeApi = `http://pokeapi.co/api/v2/pokemon/${$searchInput.value}`;
 
   try {
     $secondScreen.innerHTML = `<img class="loader" src="assets/puff.svg" alt="Cargando...">`;
@@ -90,6 +89,9 @@ async function getDataPokemon() {
         pokemonSpecies = await res.json();
 
       if (!res) throw { status: res.status, statusText: res.statusText };
+
+      $btnStartSearch.classList.add("disabled");
+      $searchInput.setAttribute("disabled", true);
 
       $mainScreen.innerHTML = `
         <img src="${pokemon.sprites.front_default}" alt="${pokemon.name}">
@@ -143,53 +145,65 @@ async function getDataPokemon() {
 }
 
 const onPokedex = () => {
-  $btnOn.classList.remove("is-off");
-  $btnOn.style.background = "#8cc6ff";
+  $powerBtn.classList.remove("is-off");
+  $powerBtn.style.background = "#8cc6ff";
   $mainScreen.style.background = "#474445";
   $secondScreen.style.background = "#474445";
-  $search.removeAttribute("disabled");
-  $search.setAttribute("placeholder", "Ingrese número o nombre");
+  $searchInput.removeAttribute("disabled");
+  $searchInput.setAttribute("placeholder", "Ingrese número o nombre");
+  $btnStartSearch.classList.remove("disabled");
+  $btnStopSearch.classList.remove("disabled");
 };
 
 const offPokedex = () => {
   synth.cancel();
-  $btnOn.classList.add("is-off");
-  $btnOn.style.background = "#474445";
+  $powerBtn.classList.add("is-off");
+  $powerBtn.style.background = "#474445";
   $mainScreen.style.background = "#000000";
   $secondScreen.style.background = "#000000";
   $mainScreen.innerHTML = "";
   $secondScreen.innerHTML = "";
   $nameScreen.innerHTML = "";
-  $search.value = "";
-  $lightSpeak.classList.remove("is-speak");
-  $lightSpeakSmall.classList.remove("is-speak");
-  $search.setAttribute("disabled", true);
-  $search.setAttribute("placeholder", "");
+  $searchInput.value = "";
+  $searchInput.setAttribute("disabled", true);
+  $searchInput.setAttribute("placeholder", "");
+  $btnStartSearch.classList.add("disabled");
+  $btnStopSearch.classList.add("disabled");
+  offLightSpeak();
 };
 
 /* Delegación de Eventos */
 d.addEventListener("click", (e) => {
   e.preventDefault();
 
-  if (!$btnOn.classList.contains("is-off")) {
-    if (e.target.matches(".btn-buscar")) {
-      $search.value !== ""
+  if (!$powerBtn.classList.contains("is-off")) {
+    if (e.target === $btnStartSearch) {
+      $searchInput.value !== ""
         ? getDataPokemon()
         : alert(
             "Debe ingresar el numero o nombre del pokémon que desea buscar"
           );
     }
 
-    if (e.target.matches(".btn-stop")) synth.cancel();
+    if (e.target === $btnStopSearch) {
+      synth.cancel();
+      $textPlaying.innerHTML = "";
+    }
 
     if (e.target.matches(".btn-play") || e.target.matches(".btn-play img")) {
-      synth.resume();
-      onLightSpeak();
+      if (synth.speaking) {
+        onLightSpeak();
+        $textPlaying.innerHTML = "";
+        synth.resume();
+      }
     }
 
     if (e.target.matches(".btn-pause") || e.target.matches(".btn-pause img")) {
       synth.pause();
-      offLightSpeak();
+      if (synth.speaking) {
+        offLightSpeak();
+        $textPlaying.innerHTML = "PAUSADO";
+      }
     }
   }
 
@@ -197,16 +211,18 @@ d.addEventListener("click", (e) => {
     e.target.matches(".buttons-circle") ||
     e.target.matches(".buttons-circle img")
   ) {
-    $btnOn.classList.contains("is-off") ? onPokedex() : offPokedex();
-    $soundBtnOn.src = "assets/sound_on_pokedex.mp3";
-    $soundBtnOn.play();
+    $soundPowerBtn.src = "assets/sound_on_pokedex.mp3";
+    $soundPowerBtn.play();
+    $powerBtn.classList.contains("is-off") ? onPokedex() : offPokedex();
   }
 });
 
 d.addEventListener("keyup", (e) => {
   if (e.key === "Enter") {
-    if (!$btnOn.classList.contains("is-off")) {
-      $search.value !== ""
+    if (!$powerBtn.classList.contains("is-off")) {
+      $btnStartSearch.classList.add("disabled");
+      $searchInput.setAttribute("disabled", true);
+      $searchInput.value !== ""
         ? getDataPokemon()
         : alert(
             "Debe ingresar el numero o nombre del pokémon que desea buscar"
@@ -220,7 +236,9 @@ d.addEventListener("DOMContentLoaded", (e) => {
     voices = window.speechSynthesis.getVoices();
   });
   synth.cancel();
-  $btnOn.classList.add("is-off");
-  $search.setAttribute("disabled", true);
-  $search.setAttribute("placeholder", "");
+  $powerBtn.classList.add("is-off");
+  $searchInput.setAttribute("disabled", true);
+  $searchInput.setAttribute("placeholder", "");
+  $btnStartSearch.classList.add("disabled");
+  $btnStopSearch.classList.add("disabled");
 });
