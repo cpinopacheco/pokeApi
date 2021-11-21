@@ -63,7 +63,7 @@ const pokedexSpeak = (
 };
 
 async function getDataPokemon() {
-  let pokeApi = `http://pokeapi.co/api/v2/pokemon/${$searchInput.value}`;
+  let pokeApi = `https://pokeapi.co/api/v2/pokemon/${$searchInput.value}`;
 
   try {
     $secondScreen.innerHTML = `<img class="loader" src="assets/puff.svg" alt="Cargando...">`;
