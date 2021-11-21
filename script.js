@@ -39,8 +39,9 @@ const pokedexSpeak = (
     Su ataque más poderoso es: ${mainAttack}. ${detail} ${detail2} ${detail3}
   `;
   utterThis.text = phrase;
-  utterThis.voice = voices[59];
-  utterThis.rate = 1.3;
+  console.log(voices);
+  utterThis.voice = voices[1];
+  utterThis.rate = 1.4;
 
   if (synth.speaking) {
     synth.cancel();
@@ -102,19 +103,11 @@ async function getDataPokemon() {
       `;
 
       $secondScreen.innerHTML = `
-        <p>Tipo: ${pokemonType.names[4].name}</p>
-        <br>
-        <p>Ataques:</p>
-        <br>
-        <ul>
-          <li>${pokemon.moves[0].move.name}</li>
-          <br>
-          <li>${pokemon.moves[1].move.name}</li>
-          <br>
-          <li>${pokemon.moves[2].move.name}</li> 
-        </ul>
-        <br><br><br>
-        <p>Especie: ${pokemonSpecies.genera[5].genus}</p>
+        <p class="pokemon-name">Tipo: ${pokemonType.names[4].name}</p>
+        <p class="pokemon-attacks">Ataques:</p>
+        <p class="pokemon-attack-1">- ${pokemon.moves[0].move.name}</p>
+        <p class="pokemon-attack-2">- ${pokemon.moves[1].move.name}</p>
+        <p class="pokemon-species">Especie: ${pokemonSpecies.genera[5].genus}</p>
       `;
 
       let pokemonDetails = pokemonSpecies.flavor_text_entries;
