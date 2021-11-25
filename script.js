@@ -9,7 +9,7 @@ const d = document,
   $lightSpeakSmall = d.querySelector(".status-light"),
   $powerBtn = d.querySelector(".buttons-circle"),
   $soundPowerBtn = d.createElement("audio"),
-  $textPlaying = d.querySelector(".text-playing"),
+  $textPaused = d.querySelector(".text-paused"),
   $btnStartSearch = d.querySelector(".btn-buscar"),
   $btnStopSearch = d.querySelector(".btn-stop");
 
@@ -39,7 +39,6 @@ const pokedexSpeak = (
     Su ataque más poderoso es: ${mainAttack}. ${detail} ${detail2} ${detail3}
   `;
   utterThis.text = phrase;
-  console.log(voices);
   utterThis.voice = voices[1];
   utterThis.rate = 1.4;
 
@@ -63,7 +62,8 @@ const pokedexSpeak = (
 };
 
 async function getDataPokemon() {
-  let pokeApi = `https://pokeapi.co/api/v2/pokemon/${$searchInput.value}`;
+  let searchValue = $searchInput.value.toLowerCase();
+  let pokeApi = `https://pokeapi.co/api/v2/pokemon/${searchValue}`;
 
   try {
     $secondScreen.innerHTML = `<img class="loader" src="assets/puff.svg" alt="Cargando...">`;
@@ -72,11 +72,15 @@ async function getDataPokemon() {
     let res = await fetch(pokeApi);
     pokemon = await res.json();
 
+    console.log(pokemon);
+
     if (!res) throw { status: res.status, statusText: res.statusText };
 
     try {
       let res = await fetch(pokemon.types[0].type.url);
       pokemonType = await res.json();
+
+      console.log(pokemonType);
 
       if (!res) throw { status: res.status, statusText: res.statusText };
     } catch (error) {
@@ -88,6 +92,8 @@ async function getDataPokemon() {
     try {
       let res = await fetch(pokemon.species.url),
         pokemonSpecies = await res.json();
+
+      console.log(pokemonSpecies);
 
       if (!res) throw { status: res.status, statusText: res.statusText };
 
@@ -134,6 +140,9 @@ async function getDataPokemon() {
     $mainScreen.innerHTML = `😮: ${message}`;
     $secondScreen.innerHTML =
       "<p>No encontramos lo que buscabas, intentalo nuevamente...</p>";
+    if ($searchInput.hasAttribute("disabled")) {
+      $searchInput.removeAttribute(disabled);
+    }
   }
 }
 
@@ -180,13 +189,13 @@ d.addEventListener("click", (e) => {
 
     if (e.target === $btnStopSearch) {
       synth.cancel();
-      $textPlaying.innerHTML = "";
+      $textPaused.textContent = "";
     }
 
     if (e.target.matches(".btn-play") || e.target.matches(".btn-play img")) {
       if (synth.speaking) {
         onLightSpeak();
-        $textPlaying.innerHTML = "";
+        $textPaused.textContent = "";
         synth.resume();
       }
     }
@@ -195,7 +204,7 @@ d.addEventListener("click", (e) => {
       synth.pause();
       if (synth.speaking) {
         offLightSpeak();
-        $textPlaying.innerHTML = "PAUSADO";
+        $textPaused.textContent = "PAUSADO";
       }
     }
   }

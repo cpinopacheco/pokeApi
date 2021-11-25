@@ -17,6 +17,8 @@
 
 body {
   background-image: url("/images/trofeoPokemon.jpg");
+  background-repeat: no-repeat;
+  background-attachment: fixed;
   background-position: center; /* center the image */
   background-size: cover; /* cover the entire window */
   font-family: "Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande",
@@ -26,7 +28,13 @@ body {
 .logo {
   display: block;
   margin: auto;
-  width: 20%;
+  width: 700px;
+}
+
+@media screen and (min-width: 768px) {
+  .logo {
+    width: 20%;
+  }
 }
 
 .pokeindex * {
@@ -36,7 +44,7 @@ body {
 .pokeindex {
   height: 50rem;
   width: 45rem;
-  margin: 0.5rem auto;
+  margin: auto;
   display: flex;
 }
 
@@ -652,7 +660,7 @@ body {
   -o-transition: all 0.2s ease-in;
 }
 
-.text-playing {
+.text-paused {
   margin-left: 8.5rem;
   margin-top: 0.8rem;
   font-weight: bold;
