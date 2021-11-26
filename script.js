@@ -55,9 +55,11 @@ const pokedexSpeak = (
 
   utterThis.onend = () => {
     offLightSpeak();
-    $btnStartSearch.classList.remove("disabled");
-    $btnStopSearch.classList.remove("disabled");
-    $searchInput.removeAttribute("disabled");
+    if (!$powerBtn.classList.contains("is-off")) {
+      $btnStartSearch.classList.remove("disabled");
+      $btnStopSearch.classList.remove("disabled");
+      $searchInput.removeAttribute("disabled");
+    }
   };
 };
 
@@ -72,15 +74,11 @@ async function getDataPokemon() {
     let res = await fetch(pokeApi);
     pokemon = await res.json();
 
-    console.log(pokemon);
-
     if (!res) throw { status: res.status, statusText: res.statusText };
 
     try {
       let res = await fetch(pokemon.types[0].type.url);
       pokemonType = await res.json();
-
-      console.log(pokemonType);
 
       if (!res) throw { status: res.status, statusText: res.statusText };
     } catch (error) {
@@ -92,8 +90,6 @@ async function getDataPokemon() {
     try {
       let res = await fetch(pokemon.species.url),
         pokemonSpecies = await res.json();
-
-      console.log(pokemonSpecies);
 
       if (!res) throw { status: res.status, statusText: res.statusText };
 
@@ -140,9 +136,8 @@ async function getDataPokemon() {
     $mainScreen.innerHTML = `😮: ${message}`;
     $secondScreen.innerHTML =
       "<p>No encontramos lo que buscabas, intentalo nuevamente...</p>";
-    if ($searchInput.hasAttribute("disabled")) {
-      $searchInput.removeAttribute(disabled);
-    }
+    $searchInput.removeAttribute("disabled");
+    $btnStartSearch.classList.remove("disabled");
   }
 }
 
@@ -180,6 +175,8 @@ d.addEventListener("click", (e) => {
 
   if (!$powerBtn.classList.contains("is-off")) {
     if (e.target === $btnStartSearch) {
+      $btnStartSearch.classList.add("disabled");
+      $searchInput.setAttribute("disabled", "true");
       $searchInput.value !== ""
         ? getDataPokemon()
         : alert(
@@ -195,8 +192,8 @@ d.addEventListener("click", (e) => {
     if (e.target.matches(".btn-play") || e.target.matches(".btn-play img")) {
       if (synth.speaking) {
         onLightSpeak();
-        $textPaused.textContent = "";
         synth.resume();
+        $textPaused.textContent = "";
       }
     }
 
@@ -223,7 +220,7 @@ d.addEventListener("keyup", (e) => {
   if (e.key === "Enter") {
     if (!$powerBtn.classList.contains("is-off")) {
       $btnStartSearch.classList.add("disabled");
-      $searchInput.setAttribute("disabled", true);
+      $searchInput.setAttribute("disabled", "true");
       $searchInput.value !== ""
         ? getDataPokemon()
         : alert(

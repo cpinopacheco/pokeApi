@@ -678,6 +678,7 @@ body {
 
 .disabled {
   pointer-events: none;
+  opacity: 0.5;
 }
 
 .pokeindex-right__buttons-triple .light {
