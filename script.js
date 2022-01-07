@@ -15,13 +15,13 @@ const d = document,
 
 let voices = [];
 
-//Eciende las luces
+//Enciende las luces de la pokedex
 const onLightSpeak = () => {
   $lightSpeak.classList.add("is-speak");
   $lightSpeakSmall.classList.add("is-speak");
 };
 
-//Apaga las luces
+//Apaga las luces de la pokedex
 const offLightSpeak = () => {
   $lightSpeak.classList.remove("is-speak");
   $lightSpeakSmall.classList.remove("is-speak");
@@ -44,7 +44,7 @@ const pokedexSpeak = (
   `;
   utterThis.text = phrase;
   utterThis.voice = voices[1];
-  utterThis.rate = 1.6;
+  utterThis.rate = 1.4;
 
   if (synth.speaking) {
     synth.cancel();
@@ -173,7 +173,7 @@ const onPokedex = () => {
   $btnStopSearch.classList.remove("disabled");
 };
 
-//apaga la pokedex
+//Apaga la pokedex
 const offPokedex = () => {
   synth.cancel();
   $powerBtn.classList.add("is-off");
