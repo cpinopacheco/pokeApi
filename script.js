@@ -15,32 +15,36 @@ const d = document,
 
 let voices = [];
 
+//Eciende las luces
 const onLightSpeak = () => {
   $lightSpeak.classList.add("is-speak");
   $lightSpeakSmall.classList.add("is-speak");
 };
 
+//Apaga las luces
 const offLightSpeak = () => {
   $lightSpeak.classList.remove("is-speak");
   $lightSpeakSmall.classList.remove("is-speak");
 };
 
+//Narra la información del pokémon
 const pokedexSpeak = (
   name,
   type,
   species,
   mainAttack,
+  secondaryAttack,
   detail,
   detail2,
   detail3
 ) => {
   const phrase = `
     ${name}. Pokémon tipo ${type}. Perteneciente a la especie ${species}. 
-    Su ataque más poderoso es: ${mainAttack}. ${detail} ${detail2} ${detail3}
+    Sus ataques más poderosos son: ${mainAttack} y ${secondaryAttack}. ${detail} ${detail2} ${detail3}
   `;
   utterThis.text = phrase;
   utterThis.voice = voices[1];
-  utterThis.rate = 1.4;
+  utterThis.rate = 1.6;
 
   if (synth.speaking) {
     synth.cancel();
@@ -63,6 +67,17 @@ const pokedexSpeak = (
   };
 };
 
+//Renderiza error en pantalla
+const renderError = (err) => {
+  let message = err.statusText || "Ha ocurrido un error";
+  $mainScreen.innerHTML = `😮: ${message}`;
+  $secondScreen.innerHTML =
+    "<p>No encontramos lo que buscabas, intentalo nuevamente...</p>";
+  $searchInput.removeAttribute("disabled");
+  $btnStartSearch.classList.remove("disabled");
+};
+
+//Llamada a la API de Pokémon
 async function getDataPokemon() {
   let searchValue = $searchInput.value.toLowerCase();
   let pokeApi = `https://pokeapi.co/api/v2/pokemon/${searchValue}`;
@@ -82,9 +97,7 @@ async function getDataPokemon() {
 
       if (!res) throw { status: res.status, statusText: res.statusText };
     } catch (error) {
-      let message = error.statusText || "Ha ocurrido un error";
-      $secondScreen.innerHTML =
-        "<p>Algunos pokémones son tan dificil de encontrar, que no se tiene infomación acerca de ellos...con suerte podemos encontrar alguna imagén que los represente.</p>";
+      renderError(error);
     }
 
     try {
@@ -92,6 +105,18 @@ async function getDataPokemon() {
         pokemonSpecies = await res.json();
 
       if (!res) throw { status: res.status, statusText: res.statusText };
+
+      try {
+        let res = await fetch(pokemon.moves[0].move.url);
+        pokemonMove = await res.json();
+        let res2 = await fetch(pokemon.moves[1].move.url);
+        pokemonMove2 = await res2.json();
+
+        if (!res) throw { status: res.status, statusText: res.statusText };
+        if (!res2) throw { status: res2.status, statusText: res2.statusText };
+      } catch (error) {
+        renderError(error);
+      }
 
       $btnStartSearch.classList.add("disabled");
       $searchInput.setAttribute("disabled", true);
@@ -105,10 +130,10 @@ async function getDataPokemon() {
       `;
 
       $secondScreen.innerHTML = `
-        <p class="pokemon-name">Tipo: ${pokemonType.names[4].name}</p>
+        <p class="pokemon-name">Tipo: ${pokemonType.names[5].name}</p>
         <p class="pokemon-attacks">Ataques:</p>
-        <p class="pokemon-attack-1">- ${pokemon.moves[0].move.name}</p>
-        <p class="pokemon-attack-2">- ${pokemon.moves[1].move.name}</p>
+        <p class="pokemon-attack-1">- ${pokemonMove.names[5].name}</p>
+        <p class="pokemon-attack-2">- ${pokemonMove2.names[5].name}</p>
         <p class="pokemon-species">Especie: ${pokemonSpecies.genera[5].genus}</p>
       `;
 
@@ -120,27 +145,23 @@ async function getDataPokemon() {
 
       pokedexSpeak(
         pokemon.name,
-        pokemonType.names[4].name,
+        pokemonType.names[5].name,
         pokemonSpecies.genera[5].genus,
-        pokemon.moves[0].move.name,
+        pokemonMove.names[5].name,
+        pokemonMove2.names[5].name,
         detailsPokemon[0].flavor_text.replace(/\n/g, " "),
         detailsPokemon[1].flavor_text.replace(/\n/g, " "),
         detailsPokemon[2].flavor_text.replace(/\n/g, " ")
       );
     } catch (error) {
-      $secondScreen.innerHTML =
-        "<p>Algunos pokémones son tan dificil de encontrar, que no se tiene infomación acerca de ellos...con suerte podemos encontrar alguna imagén que los represente.</p>";
+      renderError(error);
     }
   } catch (error) {
-    let message = error.statusText || "Ha ocurrido un error";
-    $mainScreen.innerHTML = `😮: ${message}`;
-    $secondScreen.innerHTML =
-      "<p>No encontramos lo que buscabas, intentalo nuevamente...</p>";
-    $searchInput.removeAttribute("disabled");
-    $btnStartSearch.classList.remove("disabled");
+    renderError(error);
   }
 }
 
+//Enciende la pokedex
 const onPokedex = () => {
   $powerBtn.classList.remove("is-off");
   $powerBtn.style.background = "#8cc6ff";
@@ -152,6 +173,7 @@ const onPokedex = () => {
   $btnStopSearch.classList.remove("disabled");
 };
 
+//apaga la pokedex
 const offPokedex = () => {
   synth.cancel();
   $powerBtn.classList.add("is-off");
@@ -175,8 +197,6 @@ d.addEventListener("click", (e) => {
 
   if (!$powerBtn.classList.contains("is-off")) {
     if (e.target === $btnStartSearch) {
-      $btnStartSearch.classList.add("disabled");
-      $searchInput.setAttribute("disabled", "true");
       $searchInput.value !== ""
         ? getDataPokemon()
         : alert(
@@ -219,8 +239,6 @@ d.addEventListener("click", (e) => {
 d.addEventListener("keyup", (e) => {
   if (e.key === "Enter") {
     if (!$powerBtn.classList.contains("is-off")) {
-      $btnStartSearch.classList.add("disabled");
-      $searchInput.setAttribute("disabled", "true");
       $searchInput.value !== ""
         ? getDataPokemon()
         : alert(
