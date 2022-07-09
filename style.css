@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Play&display=swap");
+
 :root {
   --bg-rose: #ffabd4;
   --bg-red: red;
@@ -21,8 +23,7 @@ body {
   background-attachment: fixed;
   background-position: center; /* center the image */
   background-size: cover; /* cover the entire window */
-  font-family: "Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande",
-    "Lucida Sans", Arial, sans-serif;
+  font-family: "Play", sans-serif;
 }
 
 .logo {
